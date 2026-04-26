@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+
 import Index from "./pages/Index.tsx";
 import Admin from "./pages/Admin.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -13,32 +14,40 @@ const queryClient = new QueryClient();
 const App = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstall, setShowInstall] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
+  const [showIOSInstall, setShowIOSInstall] = useState(false);
 
+  // ✅ ANDROID INSTALL LOGIC
   useEffect(() => {
-    // Detect iPhone
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    if (/iphone|ipad|ipod/.test(userAgent)) {
-      setIsIOS(true);
-    }
-
-    // Android install prompt
-    window.addEventListener("beforeinstallprompt", (e: any) => {
+    const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
       setShowInstall(true);
-    });
+    };
+
+    window.addEventListener("beforeinstallprompt", handler);
+
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  const handleInstallClick = () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => {
-        setDeferredPrompt(null);
-        setShowInstall(false);
-      });
-    }
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+
+    setDeferredPrompt(null);
+    setShowInstall(false);
   };
+
+  // ✅ iPHONE DETECTION
+  useEffect(() => {
+    const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+
+    if (isIOS && !isStandalone) {
+      setShowIOSInstall(true);
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -54,45 +63,69 @@ const App = () => {
           </Routes>
         </BrowserRouter>
 
-        {/* ✅ INSTALL BUTTON (Android) */}
-        {showInstall && !isIOS && (
+        {/* ✅ ANDROID INSTALL BUTTON */}
+        {showInstall && (
           <button
             onClick={handleInstallClick}
             style={{
               position: "fixed",
               bottom: "20px",
               right: "20px",
-              background: "#FFD700",
+              background: "#FFD600",
               color: "#000",
-              padding: "12px 16px",
-              borderRadius: "10px",
               border: "none",
+              padding: "10px 16px",
+              borderRadius: "999px",
               fontWeight: "bold",
-              zIndex: 1000,
-              boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.3)",
+              cursor: "pointer",
+              zIndex: 9999
             }}
           >
-            Install App
+            ⬇ Install
           </button>
         )}
 
-        {/* 🍏 iPhone instruction */}
-        {isIOS && (
+        {/* ✅ iPHONE SMALL INSTALL HINT */}
+        {showIOSInstall && (
           <div
             style={{
               position: "fixed",
               bottom: "20px",
-              left: "20px",
-              right: "20px",
-              background: "#1F1F1F",
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: "#111",
               color: "#fff",
-              padding: "12px",
-              borderRadius: "10px",
-              textAlign: "center",
-              zIndex: 1000,
+              padding: "12px 16px",
+              borderRadius: "12px",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
+              fontSize: "14px",
+              maxWidth: "90%",
+              zIndex: 9999
             }}
           >
-            Tap Share → Add to Home Screen
+            <div style={{ marginBottom: "6px", fontWeight: "bold" }}>
+              📲 Install App
+            </div>
+
+            <div style={{ fontSize: "12px", opacity: 0.8 }}>
+              Tap Share → Add to Home Screen
+            </div>
+
+            <button
+              onClick={() => setShowIOSInstall(false)}
+              style={{
+                marginTop: "8px",
+                background: "#FFD600",
+                border: "none",
+                padding: "6px 12px",
+                borderRadius: "6px",
+                fontWeight: "bold",
+                cursor: "pointer"
+              }}
+            >
+              Got it
+            </button>
           </div>
         )}
       </TooltipProvider>
