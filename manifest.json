@@ -1,6 +1,6 @@
 {
   "name": "Done Money Transfer",
-  "short_name": "Done Money",
+  "short_name": "Done Money Transfer",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0B0B0B",
