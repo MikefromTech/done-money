@@ -3,11 +3,54 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Done Money Transfer — Fast, Secure, Reliable</title>
+
+    <!-- PWA Meta -->
+    <meta name="theme-color" content="#FFD700" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="Done Money" />
+    <link rel="apple-touch-icon" href="/icon.png" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" crossorigin href="/assets/index-Brj5fVjX.css" />
+
+    <!-- Script -->
+    <script type="module" crossorigin src="/assets/index-BqERffPf.js"></script>
   </head>
 
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Register Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker
+            .register('/service-worker.js')
+            .then((registration) => {
+              console.log('Service Worker registered:', registration);
+            })
+            .catch((error) => {
+              console.log('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+
+    <!-- Offline Detection -->
+    <script>
+      window.addEventListener("offline", () => {
+        console.log("You are offline");
+      });
+
+      window.addEventListener("online", () => {
+        console.log("Back online");
+      });
+    </script>
   </body>
 </html>
